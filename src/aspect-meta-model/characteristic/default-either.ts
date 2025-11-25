@@ -11,9 +11,10 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 
-import {Characteristic, DefaultCharacteristic} from './default-characteristic';
-import {Type} from '../type';
+import {ElementSet} from '../../shared/elements-set';
 import {EitherProps} from '../../shared/props';
+import {Type} from '../type';
+import {Characteristic, DefaultCharacteristic} from './default-characteristic';
 
 export interface Either extends Characteristic {
     left: Characteristic;
@@ -31,8 +32,22 @@ export interface Either extends Characteristic {
 }
 
 export class DefaultEither extends DefaultCharacteristic implements Either {
+    override className = 'DefaultEither';
     left: Characteristic;
     right: Characteristic;
+
+    override get children(): ElementSet {
+        const children = new ElementSet();
+        if (this.left) {
+            children.push(this.left);
+        }
+
+        if (this.right) {
+            children.push(this.right);
+        }
+
+        return super.children.append(children);
+    }
 
     constructor(props: EitherProps) {
         super(props);

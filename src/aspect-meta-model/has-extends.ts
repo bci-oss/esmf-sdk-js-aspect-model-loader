@@ -12,28 +12,26 @@
  */
 
 import {ElementSet} from '../shared/elements-set';
-import {QuantityKindProps} from '../shared/props';
 import {ModelVisitor} from '../visitor/model-visitor';
 import {NamedElement} from './named-element';
 
-export interface QuantityKind extends NamedElement {
-    label: string;
-}
-
-export class DefaultQuantityKind extends NamedElement {
-    override className = 'DefaultQuantityKind';
+export class HasExtends<T extends NamedElement = NamedElement> extends NamedElement {
+    override className = '';
     override get children(): ElementSet {
-        return new ElementSet();
+        return this.extends_ instanceof NamedElement ? new ElementSet(this.extends_) : new ElementSet();
     }
 
-    label: string;
+    extends_: T;
 
-    constructor(props: QuantityKindProps) {
-        super(props);
-        this.label = props.label;
+    getExtends(): T {
+        return this.extends_;
     }
 
-    public accept<T, U>(visitor: ModelVisitor<T, U>, context: U): T {
-        return visitor.visitQuantityKind(this, context);
+    setExtends(value: T) {
+        this.extends_ = value;
+    }
+
+    override accept<T, U>(_visitor: ModelVisitor<T, U>, _context: U): T {
+        throw new Error('Method not implemented.');
     }
 }

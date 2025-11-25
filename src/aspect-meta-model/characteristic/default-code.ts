@@ -11,10 +11,11 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 
-import {DefaultCharacteristic} from './default-characteristic';
 import {CharacteristicProps} from '../../shared/props';
+import {DefaultCharacteristic} from './default-characteristic';
 
 export class DefaultCode extends DefaultCharacteristic {
+    override className = 'DefaultCode';
     constructor(props: CharacteristicProps) {
         super(props);
     }

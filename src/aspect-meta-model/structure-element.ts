@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-declaration-merging */
 /*
  * Copyright (c) 2023 Robert Bosch Manufacturing Solutions GmbH
  *
@@ -12,13 +13,27 @@
  */
 
 import {use} from 'typescript-mix';
+import {ElementSet} from '../shared/elements-set';
+import {StructuredElementProps} from '../shared/props';
+import {PropertyUrn} from './default-entity-instance';
 import {HasProperties} from './has-properties';
 import {NamedElement} from './named-element';
-import {StructuredElementProps} from '../shared/props';
+
+export interface PropertyPayload {
+    optional: boolean;
+    notInPayload: boolean;
+    payloadName: string;
+}
 
 export interface StructureElement extends HasProperties, NamedElement {}
 export abstract class StructureElement extends NamedElement {
     @use(HasProperties) _: StructureElement;
+
+    override get children(): ElementSet {
+        return new ElementSet(...this.properties);
+    }
+
+    propertiesPayload: Record<PropertyUrn, PropertyPayload> = {};
 
     constructor(props: StructuredElementProps) {
         super(props);

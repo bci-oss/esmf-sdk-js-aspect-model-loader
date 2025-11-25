@@ -11,10 +11,11 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 
-import {CollectionType, DefaultCollection} from './default-collection';
 import {CollectionProps} from '../../shared/props';
+import {CollectionType, DefaultCollection} from './default-collection';
 
 export class DefaultSortedSet extends DefaultCollection {
+    override className = 'DefaultSortedSet';
     constructor(props: CollectionProps) {
         super(props);
         this.allowDuplicates = false;

@@ -11,20 +11,32 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 
+import {ElementSet} from '../shared/elements-set';
 import {NamedElementProps} from '../shared/props';
 import {ModelElement} from './model-element';
 
 export type LangString = string;
 
 export abstract class NamedElement extends ModelElement {
-    aspectModelUrn: string;
-    name: string;
-    syntheticName: boolean;
-    see: string[] = [];
-    preferredNames: Map<LangString, string>;
-    descriptions: Map<LangString, string>;
+    abstract className: string;
+    _name: string;
+    isPredefined: boolean;
     anonymous: boolean;
-    parents: NamedElement[] = [];
+    aspectModelUrn: string;
+    syntheticName: boolean;
+    preferredNames: Map<LangString, string> = new Map();
+    descriptions: Map<LangString, string> = new Map();
+    see: string[] = [];
+    parents: ElementSet = new ElementSet();
+
+    set name(value: string) {
+        this._name = value;
+        const [namespace] = this.aspectModelUrn.split('#');
+        this.aspectModelUrn = `${namespace}#${value}`;
+    }
+    get name() {
+        return this._name;
+    }
 
     constructor(props: NamedElementProps) {
         super(props);
@@ -35,11 +47,14 @@ export abstract class NamedElement extends ModelElement {
         this.descriptions = props.descriptions || new Map();
         this.preferredNames = props.preferredNames || new Map();
         this.anonymous = Boolean(props.isAnonymous);
+        this.isPredefined = Boolean(props.isPredefined);
     }
 
     get namespace(): string {
         return this.aspectModelUrn?.split('#')?.[0];
     }
+
+    abstract get children(): ElementSet;
 
     getAspectModelUrn(): string {
         return this.aspectModelUrn;
@@ -78,19 +93,35 @@ export abstract class NamedElement extends ModelElement {
     }
 
     getPreferredName(lang: LangString = 'en'): string {
-        return this.preferredNames.get(lang) ?? this.name;
+        return this.preferredNames.get(lang);
     }
 
     getDescription(lang: LangString = 'en'): string {
-        return this.descriptions.get(lang) ?? this.descriptions.get('en') ?? '';
+        return this.descriptions.get(lang);
     }
 
     getParents(): NamedElement[] {
         return this.parents;
     }
 
+    addChild(child: NamedElement) {
+        if (this.children.some(c => c.aspectModelUrn === child.aspectModelUrn)) {
+            return;
+        }
+
+        this.children.push(child);
+    }
+
+    hasChild(child: NamedElement) {
+        return this.children.some(e => child.aspectModelUrn === e.aspectModelUrn);
+    }
+
     addParent(parent: NamedElement) {
         this.parents.push(parent);
+    }
+
+    removeParent(parent: NamedElement) {
+        this.parents = new ElementSet(...this.parents.filter(p => parent.aspectModelUrn !== p.aspectModelUrn));
     }
 
     hasParent(parent: NamedElement): boolean {

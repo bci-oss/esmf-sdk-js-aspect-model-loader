@@ -11,25 +11,40 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 
-import {ModelVisitor} from '../visitor/model-visitor';
-import {NamedElement} from './named-element';
+import {ElementSet} from '../shared/elements-set';
 import {UnitProps} from '../shared/props';
+import {ModelVisitor} from '../visitor/model-visitor';
+import {QuantityKind} from './default-quantity-kind';
+import {NamedElement} from './named-element';
 
 export interface Unit extends NamedElement {
     symbol?: string;
     code?: string;
     name: string;
-    referenceUnit?: string;
+    referenceUnit?: Unit;
     conversionFactor?: string;
+    numericConversionFactor?: number;
+    commonCode?: string;
     quantityKinds?: Array<any>;
 }
 
 export class DefaultUnit extends NamedElement implements Unit {
+    override className = 'DefaultUnit';
+    override get children(): ElementSet {
+        if (this.referenceUnit instanceof NamedElement) {
+            return new ElementSet(this.referenceUnit);
+        }
+
+        return new ElementSet();
+    }
+
     symbol?: string;
     code?: string;
-    referenceUnit?: string;
+    referenceUnit?: DefaultUnit;
     conversionFactor?: string;
-    quantityKinds?: Array<any>;
+    numericConversionFactor?: number;
+    commonCode?: string;
+    quantityKinds?: Array<QuantityKind>;
 
     constructor(props: UnitProps) {
         super(props);
@@ -37,6 +52,8 @@ export class DefaultUnit extends NamedElement implements Unit {
         this.code = props.code;
         this.referenceUnit = props.referenceUnit;
         this.conversionFactor = props.conversionFactor;
+        this.numericConversionFactor = props.numericConversionFactor;
+        this.commonCode = props.commonCode;
         this.quantityKinds = props.quantityKinds || [];
     }
 

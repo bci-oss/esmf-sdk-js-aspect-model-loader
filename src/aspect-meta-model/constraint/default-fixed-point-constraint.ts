@@ -22,6 +22,7 @@ export interface FixedPointConstraint extends Constraint {
 }
 
 export class DefaultFixedPointConstraint extends DefaultConstraint implements FixedPointConstraint {
+    override className = 'DefaultFixedPointConstraint';
     scale: number;
     integer: number;
 

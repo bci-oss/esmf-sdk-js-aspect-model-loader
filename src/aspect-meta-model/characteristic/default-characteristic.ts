@@ -11,10 +11,12 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 
-import {Type} from '../type';
-import {ModelVisitor} from '../../visitor/model-visitor';
-import {NamedElement} from '../named-element';
+import {ElementSet} from '../../shared/elements-set';
 import {CharacteristicProps} from '../../shared/props';
+import {ModelVisitor} from '../../visitor/model-visitor';
+import {DefaultEntity} from '../default-entity';
+import {NamedElement} from '../named-element';
+import {Type} from '../type';
 
 export interface Characteristic extends NamedElement {
     dataType?: Type;
@@ -22,7 +24,17 @@ export interface Characteristic extends NamedElement {
 }
 
 export class DefaultCharacteristic extends NamedElement implements Characteristic {
+    override className = 'DefaultCharacteristic';
     dataType?: Type;
+
+    get children(): ElementSet {
+        const children = new ElementSet();
+        if (this.dataType instanceof DefaultEntity) {
+            children.push(this.dataType as any);
+        }
+
+        return children;
+    }
 
     constructor(props: CharacteristicProps) {
         super(props);

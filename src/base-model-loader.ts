@@ -13,20 +13,10 @@
 
 import {DefaultProperty} from './aspect-meta-model';
 import {NamedElement} from './aspect-meta-model/named-element';
-import {CacheStrategy, FilterPredicate, initElementCache} from './shared/model-element-cache.service';
+import {CacheStrategy, FilterPredicate} from './shared/model-element-cache.service';
 
 export abstract class BaseModelLoader {
     protected cacheService: CacheStrategy;
-
-    /**
-     * Creates a AspectModelLoader instance.
-     *
-     * @param cacheService cache strategy to cache created elements to ensure uniqueness and a fast lookup of it.
-     *                     The default cache strategy ignores inline defined elements.
-     */
-    protected constructor() {
-        this.cacheService = initElementCache();
-    }
 
     /**
      * Find a specific model element, and returns it or undefined.
@@ -61,14 +51,16 @@ export abstract class BaseModelLoader {
     public determineAccessPath(baseElement: NamedElement): Array<Array<string>> {
         const path = [];
         if (baseElement instanceof DefaultProperty) {
-            path.push([baseElement.payloadName || baseElement.name]);
+            // @TODO rethink how to get payload name
+            // path.push([baseElement.payloadName || baseElement.name]);
+            path.push([baseElement.name]);
         } else {
             path.push([]);
         }
-        return this._determineAccessPath(baseElement, path);
+        return this._determineAccessPath(baseElement, null, path);
     }
 
-    private _determineAccessPath(baseElement: NamedElement, path: Array<Array<string>>): Array<Array<string>> {
+    private _determineAccessPath(baseElement: NamedElement, child: NamedElement, path: Array<Array<string>>): Array<Array<string>> {
         if (!baseElement || baseElement.parents.length === 0) {
             return path;
         }
@@ -80,12 +72,14 @@ export abstract class BaseModelLoader {
 
         baseElement.parents.forEach((parent, i) => {
             if (parent instanceof DefaultProperty) {
-                const pathSegment = parent.payloadName || parent.name;
+                // @TODO rethink how to get payload name
+                // const pathSegment = parent.payloadName || parent.name;
+                const pathSegment = parent.name;
                 if ((path[i].length > 0 && path[i][0] !== pathSegment) || path[0].length === 0) {
                     path[i].unshift(pathSegment);
                 }
             }
-            this._determineAccessPath(parent, path);
+            this._determineAccessPath(parent, baseElement, path);
         });
 
         return path;

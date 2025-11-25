@@ -11,10 +11,11 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 
-import {DefaultQuantifiable} from './default-quantifiable';
 import {QuantifiableProps} from '../../shared/props';
+import {DefaultQuantifiable} from './default-quantifiable';
 
 export class DefaultMeasurement extends DefaultQuantifiable {
+    override className = 'DefaultMeasurement';
     constructor(props: QuantifiableProps) {
         super(props);
     }

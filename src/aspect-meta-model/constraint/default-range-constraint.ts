@@ -11,9 +11,9 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 
-import {Constraint, DefaultConstraint} from './default-constraint';
-import {BoundDefinition} from '../bound-definition';
 import {RangeConstraintProps} from '../../shared/props';
+import {BoundDefinition} from '../bound-definition';
+import {Constraint, DefaultConstraint} from './default-constraint';
 
 export interface RangeConstraint extends Constraint {
     minValue?: number;
@@ -28,6 +28,7 @@ export interface RangeConstraint extends Constraint {
 }
 
 export class DefaultRangeConstraint extends DefaultConstraint implements RangeConstraint {
+    override className = 'DefaultRangeConstraint';
     minValue?: number;
     maxValue?: number;
     upperBoundDefinition?: BoundDefinition;

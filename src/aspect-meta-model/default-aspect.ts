@@ -11,10 +11,11 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 
-import {Event, Operation, Property} from './index';
-import {ModelVisitor} from '../visitor/model-visitor';
-import {StructureElement} from './structure-element';
+import {ElementSet} from '../shared/elements-set';
 import {AspectProps} from '../shared/props';
+import {ModelVisitor} from '../visitor/model-visitor';
+import {Event, Operation} from './index';
+import {StructureElement} from './structure-element';
 
 export interface Aspect extends StructureElement {
     operations: Array<Operation>;
@@ -29,9 +30,23 @@ export interface Aspect extends StructureElement {
 }
 
 export class DefaultAspect extends StructureElement implements Aspect {
+    override className = 'DefaultAspect';
     operations: Operation[];
     events: Event[];
     isCollectionAspect: boolean;
+
+    override get children(): ElementSet {
+        const children = [];
+        if (this.operations?.length) {
+            children.push(...this.operations);
+        }
+
+        if (this.events?.length) {
+            children.push(...this.events);
+        }
+
+        return super.children.append(children);
+    }
 
     constructor(props: AspectProps) {
         super(props);

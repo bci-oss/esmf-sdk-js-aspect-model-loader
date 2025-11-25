@@ -11,18 +11,15 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 
-import {DataFactory, NamedNode, Quad, Store, Util} from 'n3';
-import {RdfModelUtil} from './rdf-model-util';
+import {Samm, SammC, SammE, SammU} from '@esmf/aspect-model-loader';
 import * as locale from 'locale-codes';
-import {Samm} from '../vocabulary/samm';
-import {SammC} from '../vocabulary/samm-c';
-import {SammE} from '../vocabulary/samm-e';
-import {SammU} from '../vocabulary/samm-u';
-import {XsdDataTypes} from './xsd-datatypes';
+import {DataFactory, NamedNode, Prefixes, Quad, Store, Util} from 'n3';
 import {KnownVersion, SammVersion} from './known-version';
+import {RdfModelUtil} from './rdf-model-util';
+import {XsdDataTypes} from './xsd-datatypes';
 
 export class RdfModel {
-    private prefixes = Array<string>();
+    private prefixes: Prefixes<string> = {};
     private metaModelVersion: string;
 
     public readonly samm: Samm;
@@ -32,7 +29,6 @@ export class RdfModel {
     public xsdDataTypes: XsdDataTypes;
 
     constructor(public store: Store, metaModelVersion?: string, aspectModelUrn?: string) {
-        this.store = store;
         if (metaModelVersion) {
             this.metaModelVersion = metaModelVersion;
         } else {
@@ -62,8 +58,30 @@ export class RdfModel {
         return Object.keys(this.prefixes).map(key => this.prefixes[key]);
     }
 
-    public getPrefixes(): string[] {
+    public hasDependency(namespace: string): boolean {
+        return this.getNamespaces().includes(namespace);
+    }
+
+    public getAliasByDependency(namespace: string): string {
+        return Object.keys(this.prefixes).find(key => this.prefixes[key] === namespace);
+    }
+
+    public getAliasByNamespace(namespace: string): string {
+        return Object.keys(this.prefixes).find(alias => (this.prefixes[alias] as any) === namespace);
+    }
+
+    public getPrefixes(): Prefixes<string> {
         return this.prefixes;
+    }
+
+    public updatePrefix(alias: string, oldValue: string, newValue: string): void {
+        const prefix: any = this.prefixes[alias];
+        const newPrefix = prefix.replace(oldValue, newValue);
+        this.prefixes[alias] = newPrefix as any;
+    }
+
+    public removePrefix(shortPrefixName: string): void {
+        delete this.prefixes[shortPrefixName];
     }
 
     public getAspectModelUrn(): string {
@@ -71,7 +89,46 @@ export class RdfModel {
     }
 
     public addPrefix(alias: string, namespace: string): void {
+        if (alias === '' && !this.prefixes[alias]) {
+            this.prefixes[alias] = namespace;
+            return;
+        }
+
+        const inPrefixes = Object.values(this.prefixes).some(value => value === namespace);
+        if ((alias === '' || alias === undefined) && !inPrefixes) {
+            const matched = namespace.match(/[a-zA-Z]+/gi); //NOSONAR
+            if (matched.length) {
+                let newAlias = `ext-${matched[matched.length - 1]}`;
+                if (this.prefixes[newAlias]) {
+                    let count = 2;
+                    newAlias = `ext-${matched[matched.length - 1]}${count}`;
+                    while (this.prefixes[newAlias]) {
+                        count++;
+                    }
+                }
+                this.prefixes[newAlias] = namespace;
+                return;
+            }
+        }
+
+        if (inPrefixes) {
+            return;
+        }
+
+        if (this.prefixes[alias]) {
+            let count = 1;
+            while (this.prefixes[`${alias}${count}`]) {
+                count++;
+            }
+            this.prefixes[`${alias}${count}`] = namespace;
+            return;
+        }
+
         this.prefixes[alias] = namespace;
+    }
+
+    public setPrefixes(prefixes: Record<string, string>) {
+        this.prefixes = prefixes;
     }
 
     public getLocale(quad: Quad) {
@@ -134,50 +191,4 @@ export class RdfModel {
             }
         });
     }
-}
-
-let rdfModel: RdfModel;
-let store: Store;
-
-export function getRdfModel(): RdfModel {
-    return rdfModel;
-}
-
-export function useRdfModel(rdfModel_: RdfModel): RdfModel {
-    if (rdfModel_ instanceof RdfModel) {
-        return (rdfModel = rdfModel_);
-    }
-
-    throw new Error('Wrong instance of RdfModel used');
-}
-
-export function initiateRdfModel(metaModelVersion?: string, aspectModelUrn?: string): RdfModel {
-    if (rdfModel) {
-        throw new Error(
-            'Rdf Model already initiated. If a new instance is needed, call destroyRdfModel() then recall this function, else you can get the already initiated Rdf Model by calling getRdfModel()'
-        );
-    }
-
-    const store = new Store();
-    rdfModel = new RdfModel(store, metaModelVersion, aspectModelUrn);
-    return rdfModel;
-}
-
-export function createOrGetStore() {
-    if (!store) store = new Store();
-    return store;
-}
-
-export function getStore(): Store {
-    return rdfModel?.store || store;
-}
-
-export function destroyStore() {
-    store = null;
-    rdfModel && (rdfModel.store = null);
-}
-
-export function destroyRdfModel({keepStore}: {keepStore: boolean} = {keepStore: false}) {
-    !keepStore && destroyStore();
-    rdfModel = null;
 }

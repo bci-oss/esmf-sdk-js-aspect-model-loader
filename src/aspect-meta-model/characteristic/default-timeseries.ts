@@ -11,10 +11,11 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 
-import {DefaultSortedSet} from './default-sorted-set';
 import {CollectionProps} from '../../shared/props';
+import {DefaultSortedSet} from './default-sorted-set';
 
 export class DefaultTimeSeries extends DefaultSortedSet {
+    override className = 'DefaultTimeSeries';
     constructor(props: CollectionProps) {
         super(props);
     }

@@ -21,6 +21,7 @@ export interface LocaleConstraint extends Constraint {
 }
 
 export class DefaultLocaleConstraint extends DefaultConstraint implements LocaleConstraint {
+    override className = 'DefaultLocaleConstraint';
     localeCode: string;
 
     constructor(props: LocaleConstraintProps) {

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-interface */
 /*
  * Copyright (c) 2023 Robert Bosch Manufacturing Solutions GmbH
  *
@@ -11,11 +12,13 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 
-import {DefaultQuantifiable, Quantifiable} from './default-quantifiable';
 import {QuantifiableProps} from '../../shared/props';
+import {DefaultQuantifiable, Quantifiable} from './default-quantifiable';
 
 export interface Duration extends Quantifiable {}
 export class DefaultDuration extends DefaultQuantifiable implements Quantifiable {
+    override className = 'DefaultDuration';
+
     constructor(props: QuantifiableProps) {
         super(props);
     }

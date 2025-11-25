@@ -11,17 +11,23 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 
-import {generateCharacteristic, getDataType} from '../characteristic/characteristic-instantiator';
 import {Quad} from 'n3';
 import {DefaultList} from '../../aspect-meta-model/characteristic/default-list';
-import {getRdfModel} from '../../shared/rdf-model';
+import {BaseInitProps} from '../../shared/base-init-props';
+import {characteristicFactory} from './characteristic-instantiator';
 
-export function createListCharacteristic(quad: Quad): DefaultList {
-    return generateCharacteristic(quad, (baseProperties, propertyQuads) => {
-        const {samm} = getRdfModel();
-        return new DefaultList({
-            ...baseProperties,
-            dataType: getDataType(propertyQuads.find(propertyQuad => samm.isDataTypeProperty(propertyQuad.predicate.value))),
+export function listCharacteristicFactory(initProps: BaseInitProps) {
+    const {
+        rdfModel: {samm},
+    } = initProps;
+    const {generateCharacteristic, getDataType} = characteristicFactory(initProps);
+
+    return function createListCharacteristic(quad: Quad): DefaultList {
+        return generateCharacteristic(quad, (baseProperties, propertyQuads) => {
+            return new DefaultList({
+                ...baseProperties,
+                dataType: getDataType(propertyQuads.find(propertyQuad => samm.isDataTypeProperty(propertyQuad.predicate.value))),
+            });
         });
-    });
+    };
 }

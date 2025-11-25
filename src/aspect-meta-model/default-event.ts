@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-interface */
 /*
  * Copyright (c) 2023 Robert Bosch Manufacturing Solutions GmbH
  *
@@ -11,13 +12,14 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 
+import {EventProps} from '../shared/props';
 import {ModelVisitor} from '../visitor/model-visitor';
 import {StructureElement} from './structure-element';
-import {EventProps} from '../shared/props';
 
 export interface Event extends StructureElement {}
 
 export class DefaultEvent extends StructureElement implements Event {
+    override className = 'DefaultEvent';
     constructor(props: EventProps) {
         super(props);
     }

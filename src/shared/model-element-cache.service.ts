@@ -55,6 +55,41 @@ export interface CacheStrategy {
      * @param overwrite force to overwrite it if an element with the name already exists
      */
     addElement<T extends NamedElement>(aspectModelUrn: string, modelElement: T, overwrite?: boolean): void;
+
+    /**
+     * Returns the keys with the search in the key
+     *
+     * @param search if left empty all keys will be returned
+     */
+    getKeys(search?: string): string[];
+
+    /**
+     * Removed one element from the cache
+     *
+     * @param key element to be removed
+     */
+    removeElement(key: string): void;
+
+    /**
+     * Updates the namespace of all elements in the cache
+     *
+     * @param oldValue old namespace
+     * @param newValue new namespace
+     */
+    updateElementsNamespace(oldValue: string, newValue: string): void;
+
+    /**
+     * Updates the key of a cached element
+     *
+     * @param oldKey old key of the element
+     * @param newKey new key of the element
+     */
+    updateElementKey(oldKey: string, newKey: string): void;
+
+    /**
+     * Get all elements in the cache
+     */
+    getAllElements<T extends NamedElement>(): T[];
 }
 
 /**
@@ -89,7 +124,7 @@ export class ModelElementCache implements CacheStrategy {
     }
 
     public resolveInstance<T extends NamedElement>(instance: T): T {
-        if (instance.isAnonymous()) {
+        if (instance && instance.isAnonymous()) {
             return instance;
         }
 
@@ -104,31 +139,49 @@ export class ModelElementCache implements CacheStrategy {
     }
 
     public addElement<T>(aspectModelUrn: string, modelElement: T, overwrite = false) {
+        aspectModelUrn = (modelElement as NamedElement)?.aspectModelUrn || aspectModelUrn;
         const cachedElement = this.instanceCache.get(aspectModelUrn);
+
         if (!overwrite && cachedElement) {
             return;
         }
+
         if (cachedElement) {
             console.info(`Element with the name ${aspectModelUrn} already exist. Overwriting existing element.`);
         }
         this.instanceCache.set(aspectModelUrn, modelElement as NamedElement);
     }
-}
 
-let modelElementsCache: CacheStrategy;
+    public removeElement(key: string): void {
+        this.instanceCache.delete(key);
+    }
 
-export function createCacheInstance() {
-    return new ModelElementCache();
-}
+    public getKeys(search = '') {
+        return Array.from(this.instanceCache.keys()).filter(key => key?.includes(search));
+    }
 
-export function initElementCache() {
-    return (modelElementsCache = createCacheInstance());
-}
+    public updateElementsNamespace(oldValue: string, newValue: string): void {
+        const newCachedElements = new Map<string, NamedElement>();
 
-export function getElementsCache() {
-    return modelElementsCache;
-}
+        this.instanceCache.forEach((element: NamedElement, key: string) => {
+            const newAspectModelUrn = element.aspectModelUrn.replace(oldValue, newValue);
+            const newKey = key.replace(oldValue, newValue);
 
-export function destroyElementCache() {
-    modelElementsCache = null;
+            element.aspectModelUrn = newAspectModelUrn;
+            newCachedElements.set(newKey, element);
+        });
+        this.instanceCache = newCachedElements;
+    }
+
+    updateElementKey(oldKey: string, newKey: string) {
+        const resolvedEntry = this.instanceCache.get(oldKey);
+        if (resolvedEntry) {
+            this.instanceCache.delete(oldKey);
+            this.instanceCache.set(newKey, resolvedEntry);
+        }
+    }
+
+    getAllElements<T extends NamedElement>(): T[] {
+        return [...this.instanceCache.values()] as T[];
+    }
 }

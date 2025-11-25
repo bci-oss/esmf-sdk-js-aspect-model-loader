@@ -22,6 +22,7 @@ export interface LengthConstraint extends Constraint {
 }
 
 export class DefaultLengthConstraint extends DefaultConstraint implements LengthConstraint {
+    override className = 'DefaultLengthConstraint';
     minValue?: number;
     maxValue?: number;
 

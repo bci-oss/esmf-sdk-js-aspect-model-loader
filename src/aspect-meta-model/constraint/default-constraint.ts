@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-interface */
 /*
  * Copyright (c) 2023 Robert Bosch Manufacturing Solutions GmbH
  *
@@ -11,13 +12,19 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 
+import {ElementSet} from '../../shared/elements-set';
+import {ConstraintProps} from '../../shared/props';
 import {ModelVisitor} from '../../visitor/model-visitor';
 import {NamedElement} from '../named-element';
-import {ConstraintProps} from '../../shared/props';
 
 export interface Constraint extends NamedElement {}
 
 export class DefaultConstraint extends NamedElement implements Constraint {
+    className = 'DefaultConstraint';
+    override get children(): ElementSet {
+        return new ElementSet();
+    }
+
     constructor(props: ConstraintProps) {
         super(props);
     }

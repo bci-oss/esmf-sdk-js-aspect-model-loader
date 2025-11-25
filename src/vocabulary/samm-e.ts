@@ -14,6 +14,8 @@
 import {Samm} from './samm';
 
 export class SammE {
+    static versionLessUri = `${Samm.getBaseUri()}entity:`;
+
     private alias = 'samm-e';
 
     constructor(private samm: Samm) {}

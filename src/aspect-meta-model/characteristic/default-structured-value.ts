@@ -11,9 +11,11 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 
-import {Characteristic, DefaultCharacteristic} from './default-characteristic';
-import {Property} from '../default-property';
+import {ElementSet} from '../../shared/elements-set';
 import {StructuredValueProps} from '../../shared/props';
+import {Property} from '../default-property';
+import {NamedElement} from '../named-element';
+import {Characteristic, DefaultCharacteristic} from './default-characteristic';
 
 export interface StructuredValue extends Characteristic {
     deconstructionRule: string;
@@ -23,6 +25,13 @@ export interface StructuredValue extends Characteristic {
 }
 
 export class DefaultStructuredValue extends DefaultCharacteristic implements StructuredValue {
+    override className = 'DefaultStructuredValue';
+
+    override get children(): ElementSet {
+        const children = this.elements.filter(element => element instanceof NamedElement);
+        return super.children.append(children as Property[]);
+    }
+
     deconstructionRule: string;
     elements: (string | Property)[];
 

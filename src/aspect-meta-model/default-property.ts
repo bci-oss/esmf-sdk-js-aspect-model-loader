@@ -11,59 +11,53 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 
-import {Characteristic} from './characteristic/default-characteristic';
-import {ModelVisitor} from '../visitor/model-visitor';
-import {NamedElement} from './named-element';
+import {ElementSet} from '../shared/elements-set';
 import {PropertyProps} from '../shared/props';
+import {ModelVisitor} from '../visitor/model-visitor';
+import {Characteristic} from './characteristic/default-characteristic';
+import {HasExtends} from './has-extends';
+import {NamedElement} from './named-element';
 
-export interface Property extends NamedElement {
+export interface Property extends NamedElement, HasExtends<Property> {
     characteristic: Characteristic;
     exampleValue: string;
-    optional: boolean;
-    notInPayload: boolean;
-    payloadName: string;
     isAbstract: boolean;
-    _extends: Property;
 }
 
 export class DefaultProperty extends NamedElement implements Property {
+    override className = 'DefaultProperty';
+    override get children(): ElementSet {
+        const children = new ElementSet();
+        if (this.extends_ instanceof NamedElement) {
+            children.push(this.extends_);
+        }
+
+        if (this.characteristic instanceof NamedElement) {
+            children.push(this.characteristic);
+        }
+
+        return children;
+    }
+
+    extends_: Property;
     characteristic: Characteristic;
     exampleValue: string;
-    optional: boolean;
-    notInPayload: boolean;
-    payloadName: string;
     isAbstract: boolean;
-    _extends: Property;
 
     constructor(props: PropertyProps) {
         super(props);
         this.characteristic = props.characteristic || null;
         this.exampleValue = props.exampleValue || null;
-        this._extends = props.extends_;
-        this.notInPayload = Boolean(props.notInPayload);
-        this.optional = Boolean(props.optional);
-        this.payloadName = props.payloadName;
+        this.extends_ = props.extends_;
         this.isAbstract = Boolean(props.isAbstract);
     }
 
-    getCharacteristic(): Characteristic {
-        return this.characteristic;
-    }
-
-    getExampleValue(): string {
-        return this.exampleValue;
-    }
-
-    isOptional(): boolean {
-        return this.optional;
-    }
-
-    isNotInPayload(): boolean {
-        return this.notInPayload;
-    }
-
     getExtends(): Property {
-        return this._extends;
+        return this.extends_;
+    }
+
+    setExtends(value: Property): void {
+        this.extends_ = value;
     }
 
     accept<T, U>(visitor: ModelVisitor<T, U>, context: U): T {

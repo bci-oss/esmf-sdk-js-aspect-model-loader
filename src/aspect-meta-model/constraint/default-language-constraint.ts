@@ -21,6 +21,7 @@ export interface LanguageConstraint extends Constraint {
 }
 
 export class DefaultLanguageConstraint extends DefaultConstraint implements LanguageConstraint {
+    override className = 'DefaultLanguageConstraint';
     languageCode: string;
 
     constructor(props: LanguageConstraintProps) {

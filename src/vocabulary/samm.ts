@@ -29,13 +29,17 @@ export class Samm {
 
     constructor(public version: string) {}
 
-    isDefaultNamespaceUri(value: string): boolean {
+    static isDefaultNamespaceUri(value: string): boolean {
         return (
             value.startsWith(Samm.XSD_URI) ||
             value.startsWith(Samm.RDF_URI) ||
             value.startsWith(Samm.RDFS_URI) ||
             value.startsWith(Samm.BASE_URI)
         );
+    }
+
+    static isSammPrefix(value: string): boolean {
+        return value.startsWith('urn:samm');
     }
 
     getAlias(): string {
@@ -301,8 +305,23 @@ export class Samm {
         return `${this.getNamespace()}quantityKind` === value;
     }
 
+    QuantityKindProperty() {
+        return DataFactory.namedNode(`${this.getNamespace()}quantityKind`);
+    }
+
+    QuantityKindsProperty() {
+        return DataFactory.namedNode(`${this.getNamespace()}quantityKinds`);
+    }
+
+    ReferenceUnitProperty(): NamedNode {
+        return DataFactory.namedNode(`${this.getNamespace()}referenceUnit`);
+    }
+
     isReferenceUnitProperty(value: string): boolean {
-        return `${this.getNamespace()}referenceUnit` === value;
+        return this.ReferenceUnitProperty().value === value;
+    }
+    Unit(): NamedNode {
+        return DataFactory.namedNode(`${this.getNamespace()}Unit`);
     }
 
     isCommonCodeProperty(value: string): boolean {
@@ -315,5 +334,9 @@ export class Samm {
 
     isSymbolProperty(value: string): boolean {
         return `${this.getNamespace()}symbol` === value;
+    }
+
+    isNumericConversionFactorProperty(value: string): boolean {
+        return `${this.getNamespace()}numericConversionFactor` === value;
     }
 }

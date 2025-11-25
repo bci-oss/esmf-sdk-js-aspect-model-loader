@@ -20,6 +20,7 @@ export interface EncodingConstraint extends Constraint {
 }
 
 export class DefaultEncodingConstraint extends DefaultConstraint implements EncodingConstraint {
+    override className = 'DefaultEncodingConstraint';
     value: string;
 
     constructor(props: EncodingConstraintProps) {

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-interface */
 /*
  * Copyright (c) 2023 Robert Bosch Manufacturing Solutions GmbH
  *
@@ -11,13 +12,15 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 
-import {Property} from './default-property';
+import {EntityProps} from '../shared/props';
 import {ModelVisitor} from '../visitor/model-visitor';
 import {ComplexType} from './complex-type';
-import {EntityProps} from '../shared/props';
+import {Property} from './default-property';
 
 export interface Entity extends ComplexType {}
 export class DefaultEntity extends ComplexType {
+    override className = 'DefaultEntity';
+
     constructor(props: EntityProps) {
         super(props);
     }

@@ -11,13 +11,14 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 
+import {DataFactory, Quad, Util, Writer} from 'n3';
 import {DefaultEntity, Entity} from '../aspect-meta-model/default-entity';
-import {RdfModel} from './rdf-model';
 import {Samm} from '../vocabulary/samm';
 import {SammC} from '../vocabulary/samm-c';
 import {SammE} from '../vocabulary/samm-e';
 import {SammU} from '../vocabulary/samm-u';
 import {KnownVersion} from './known-version';
+import {RdfModel} from './rdf-model';
 
 export class RdfModelUtil {
     static readonly defaultAspectModelAlias = '';
@@ -108,5 +109,37 @@ export class RdfModelUtil {
                 `SAMM ${rdfModel.getMetaModelVersion()} is not supported. Supported versions are: ${KnownVersion.getSupportedVersions().join()}`
             );
         }
+    }
+
+    static resolveRecursiveBlankNodes(rdfModel: RdfModel, uri: string, writer: Writer): Quad[] {
+        const quads: Quad[] = rdfModel.store.getQuads(DataFactory.blankNode(uri), null, null, null);
+        const blankNodes = [];
+
+        for (const quad of quads) {
+            if (Util.isBlankNode(quad.subject) && Util.isBlankNode(quad.object)) {
+                const currentBlankNodes = RdfModelUtil.resolveRecursiveBlankNodes(rdfModel, quad.object.value, writer);
+
+                if (currentBlankNodes.every(({predicate}) => predicate.value.startsWith(Samm.RDF_URI))) {
+                    blankNodes.push(...currentBlankNodes);
+                    continue;
+                }
+
+                blankNodes.push(DataFactory.quad(quad.subject, quad.predicate, writer.blank(currentBlankNodes)));
+                continue;
+            }
+
+            if (Util.isBlankNode(quad.object)) {
+                const currentBlankNodes = RdfModelUtil.resolveRecursiveBlankNodes(rdfModel, quad.object.value, writer);
+
+                blankNodes.push(...currentBlankNodes);
+                continue;
+            }
+
+            if (!quad.object.value.startsWith(Samm.RDF_URI)) {
+                blankNodes.push(DataFactory.quad(quad.subject, quad.predicate, quad.object));
+            }
+        }
+
+        return blankNodes;
     }
 }

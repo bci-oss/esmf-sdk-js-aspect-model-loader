@@ -20,6 +20,7 @@ export interface RegularExpressionConstraint extends Constraint {
 }
 
 export class DefaultRegularExpressionConstraint extends DefaultConstraint implements RegularExpressionConstraint {
+    override className = 'DefaultRegularExpressionConstraint';
     value: string;
 
     constructor(props: RegularExpressionConstraintProps) {

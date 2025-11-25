@@ -12,58 +12,70 @@
  */
 
 import {NamedNode, Quad} from 'n3';
-import {getBaseProperties} from './meta-model-element-instantiator';
-import {DefaultEntity} from '../aspect-meta-model/default-entity';
 import {Property} from '../aspect-meta-model';
-import {getRdfModel, getStore} from '../shared/rdf-model';
-import {getElementsCache} from '../shared/model-element-cache.service';
 import {ComplexType} from '../aspect-meta-model/complex-type';
-import {getProperties} from './property-instantiator';
+import {DefaultEntity} from '../aspect-meta-model/default-entity';
+import {BaseInitProps} from '../shared/base-init-props';
+import {basePropertiesFactory} from './meta-model-element-instantiator';
+import {predefinedEntitiesFactory} from './predefined-entity-instantiator';
+import {propertyFactory} from './property-instantiator';
 
-export function createEntity(quads: Quad[], isAbstract = false, extending?: ComplexType) {
-    if (!quads?.length) return null;
+export function entityFactory(initProps: BaseInitProps) {
+    return (quads: Quad[], isAbstract = false, extending?: ComplexType) => {
+        if (!quads?.length) return null;
 
-    const rdfModel = getRdfModel();
-    const samm = rdfModel.samm;
-    const elementsCache = getElementsCache();
+        const {samm, store} = initProps.rdfModel;
+        const elementsCache = initProps.cache;
 
-    const subject = quads?.[0].subject as NamedNode;
-    const cachedEntity = elementsCache.get<DefaultEntity>(subject.value);
-    if (cachedEntity) {
-        if (extending && !cachedEntity.extendingElements.find(el => el.aspectModelUrn === extending.aspectModelUrn)) {
-            cachedEntity.extendingElements.push(extending);
-        }
-        return cachedEntity;
-    }
-
-    const baseProperties = getBaseProperties(subject);
-    const properties: Property[] = [];
-
-    const entity = new DefaultEntity({
-        ...baseProperties,
-        properties,
-        isAbstract,
-    });
-
-    for (const quad of quads) {
-        if (samm.isPropertiesProperty(quad.predicate.value)) {
-            properties.push(...getProperties(quad.subject as NamedNode));
-            continue;
+        const subject = quads?.[0].subject as NamedNode;
+        const cachedEntity = elementsCache.get<DefaultEntity>(subject.value);
+        if (cachedEntity) {
+            if (extending && !cachedEntity.extendingElements.find(el => el.aspectModelUrn === extending.aspectModelUrn)) {
+                cachedEntity.extendingElements.push(extending);
+            }
+            return cachedEntity;
         }
 
-        if (samm.isExtends(quad.predicate.value)) {
-            const extendsEntityQuads = getStore().getQuads(quad.object, null, null, null);
-            if (extendsEntityQuads && extendsEntityQuads.length > 0) {
-                entity.extends_ = createEntity(
-                    extendsEntityQuads,
-                    extendsEntityQuads.some(q => samm.isAbstractEntity(q.object.value)),
-                    entity
-                );
+        const baseProperties = basePropertiesFactory(initProps)(subject);
+        const properties: Property[] = [];
+
+        const entity = new DefaultEntity({
+            ...baseProperties,
+            properties,
+            isAbstract,
+        });
+
+        for (const quad of quads) {
+            if (samm.isPropertiesProperty(quad.predicate.value)) {
+                const propertiesData = propertyFactory(initProps).createProperties(quad.subject as NamedNode);
+                for (const propertyData of propertiesData) {
+                    properties.push(propertyData.property);
+                    if (!entity.propertiesPayload[propertyData.property.aspectModelUrn])
+                        entity.propertiesPayload[propertyData.property.aspectModelUrn] = propertyData.payload;
+                }
+                continue;
+            }
+
+            if (samm.isExtends(quad.predicate.value)) {
+                const extendsEntityQuads = store.getQuads(quad.object.value, null, null, null);
+                const predefinedEntities = predefinedEntitiesFactory(initProps).getAllPredefinedEntities();
+                const predefinedEntity = Object.values(predefinedEntities).find(e => e.aspectModelUrn === quad.object.value);
+
+                if (predefinedEntity) {
+                    entity.extends_ = predefinedEntity;
+                    predefinedEntity.parents.push(entity);
+                } else if (extendsEntityQuads && extendsEntityQuads.length > 0) {
+                    entity.extends_ = entityFactory(initProps)(
+                        extendsEntityQuads,
+                        extendsEntityQuads.some(q => samm.isAbstractEntity(q.object.value)),
+                        entity
+                    );
+                }
             }
         }
-    }
 
-    properties.forEach(property => property.addParent(entity));
+        properties.forEach(property => property.addParent(entity));
 
-    return elementsCache.resolveInstance(entity);
+        return elementsCache.resolveInstance(entity);
+    };
 }

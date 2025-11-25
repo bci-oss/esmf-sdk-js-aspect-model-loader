@@ -10,6 +10,7 @@
  *
  * SPDX-License-Identifier: MPL-2.0
  */
+/* eslint-disable @typescript-eslint/no-empty-interface */
 
 import {
     Characteristic,
@@ -41,6 +42,7 @@ export interface NamedElementProps extends BaseProps {
     descriptions?: Map<LangString, string>;
     see?: string[];
     isAnonymous?: boolean;
+    isPredefined?: boolean;
 }
 
 export interface HasPropertiesProps {
@@ -54,7 +56,7 @@ export interface ScalarValueProps extends Partial<NamedElementProps> {
     type: DefaultScalar;
 }
 
-export interface ScalarProps extends BaseProps {
+export interface ScalarProps extends Omit<NamedElementProps, 'aspectModelUrn' | 'name'> {
     urn: string;
     scalar?: boolean;
     complexType?: boolean;
@@ -75,9 +77,6 @@ export interface EntityProps extends StructuredElementProps {
 export interface PropertyProps extends NamedElementProps {
     characteristic?: Characteristic;
     exampleValue?: string;
-    optional?: boolean;
-    notInPayload?: boolean;
-    payloadName?: string;
     isAbstract?: boolean;
     extends_?: Property;
 }
@@ -96,8 +95,10 @@ export interface QuantityKindProps extends NamedElementProps {
 export interface UnitProps extends NamedElementProps {
     symbol?: string;
     code?: string;
-    referenceUnit?: string;
+    referenceUnit?: Unit;
     conversionFactor?: string;
+    numericConversionFactor?: number;
+    commonCode?: string;
     quantityKinds: QuantityKind[];
 }
 

@@ -10,19 +10,24 @@
  *
  * SPDX-License-Identifier: MPL-2.0
  */
-import {Characteristic, DefaultCharacteristic} from './default-characteristic';
-import {DefaultEntityInstance, EntityInstance} from '../default-entity-instance';
-import {DefaultEntity} from '../default-entity';
+import {ElementSet} from '../../shared/elements-set';
 import {EnumerationProps} from '../../shared/props';
+import {DefaultEntityInstance, EntityInstance} from '../default-entity-instance';
 import {Value} from '../value';
-import {ComplexType} from '../complex-type';
+import {Characteristic, DefaultCharacteristic} from './default-characteristic';
 
 export interface Enumeration extends Characteristic {
     values: Value[];
 }
 
 export class DefaultEnumeration extends DefaultCharacteristic implements Enumeration {
-    values: Value[];
+    override className = 'DefaultEnumeration';
+    values: (Value | DefaultEntityInstance)[];
+
+    override get children(): ElementSet {
+        const elementValues = this.values.filter(v => v instanceof DefaultEntityInstance);
+        return super.children.append(elementValues as any[]);
+    }
 
     constructor(props: EnumerationProps) {
         super(props);

@@ -11,10 +11,11 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 
-import {Property} from './default-property';
-import {ModelVisitor} from '../visitor/model-visitor';
-import {NamedElement} from './named-element';
+import {ElementSet} from '../shared/elements-set';
 import {OperationProps} from '../shared/props';
+import {ModelVisitor} from '../visitor/model-visitor';
+import {Property} from './default-property';
+import {NamedElement} from './named-element';
 
 export interface Operation extends NamedElement {
     input: Array<Property>;
@@ -30,6 +31,17 @@ export interface Operation extends NamedElement {
 }
 
 export class DefaultOperation extends NamedElement implements Operation {
+    override className = 'DefaultOperation';
+
+    override get children(): ElementSet {
+        const children = [];
+        if (this.output instanceof NamedElement) {
+            children.push(this.output);
+        }
+
+        return new ElementSet(...this.input, ...children);
+    }
+
     input: Property[] = [];
     output: Property;
 

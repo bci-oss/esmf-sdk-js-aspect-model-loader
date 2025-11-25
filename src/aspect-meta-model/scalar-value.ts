@@ -11,24 +11,15 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 
-import {NamedElementProps, ScalarValueProps} from '../shared/props';
+import {ScalarValueProps} from '../shared/props';
 import {ModelVisitor} from '../visitor/model-visitor';
 import {Value} from './value';
 
 export class ScalarValue extends Value {
     constructor(props: ScalarValueProps) {
-        super(props as NamedElementProps);
+        super(props.value);
         this.value = props.value;
         this.type = props.type;
-        this.metaModelVersion = this.type?.getMetaModelVersion();
-    }
-
-    override getValue() {
-        return this.value;
-    }
-
-    override getMetaModelVersion(): string {
-        return this.type.getMetaModelVersion();
     }
 
     accept<T, U>(visitor: ModelVisitor<T, U>, context: U): T {

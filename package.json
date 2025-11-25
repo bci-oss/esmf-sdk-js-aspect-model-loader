@@ -6,7 +6,7 @@
     "typings": "dist/index.d.ts",
     "scripts": {
         "build": "rimraf dist && tsc --build tsconfig.json",
-        "prettier": "prettier --config .prettierrc --write './src/**/*{.ts,.js,.json}'",
+        "prettier": "prettier --config .prettierrc --write ./src/**/*{.ts,.js,.json}",
         "lint": "eslint . --ext .ts",
         "lint:fix": "eslint . --ext .ts --fix",
         "test": "jest --reporters default jest-stare",

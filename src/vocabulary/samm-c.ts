@@ -11,9 +11,9 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 
-import {Samm} from './samm';
 import {DataFactory, NamedNode} from 'n3';
 import {BoundDefinition} from '../aspect-meta-model/bound-definition';
+import {Samm} from './samm';
 
 export class SammC {
     private alias = 'samm-c';
@@ -300,5 +300,46 @@ export class SammC {
 
     TraitCharacteristic(): NamedNode {
         return DataFactory.namedNode(`${this.getNamespace()}Trait`);
+    }
+
+    get metaModelPluralNames() {
+        return [this.samm.PropertiesProperty().value, this.samm.OperationsProperty().value, this.samm.EventsProperty().value];
+    }
+
+    get metaModelSingularNames() {
+        return [this.samm.Property().value, this.samm.Operation().value, this.samm.Event().value];
+    }
+
+    getMetaModelNames(plural = true): Array<string> {
+        return [
+            this.samm.Aspect().value,
+            ...(plural ? this.metaModelPluralNames : this.metaModelSingularNames),
+            this.samm.OperationsProperty().value,
+            this.samm.Characteristic().value,
+            this.samm.Constraint().value,
+            this.samm.Entity().value,
+            this.samm.EventsProperty().value,
+            this.LanguageConstraint().value,
+            this.LocaleConstraint().value,
+            this.RangeConstraint().value,
+            this.EncodingConstraint().value,
+            this.LengthConstraint().value,
+            this.RegularExpressionConstraint().value,
+            this.FixedPointConstraint().value,
+            this.StateCharacteristic().value,
+            this.EitherCharacteristic().value,
+            this.CodeCharacteristic().value,
+            this.DurationCharacteristic().value,
+            this.MeasurementCharacteristic().value,
+            this.EnumerationCharacteristic().value,
+            this.QuantifiableCharacteristic().value,
+            this.CollectionCharacteristic().value,
+            this.ListCharacteristic().value,
+            this.SetCharacteristic().value,
+            this.SingleEntityCharacteristic().value,
+            this.SortedSetCharacteristic().value,
+            this.StructuredValueCharacteristic().value,
+            this.TimeSeriesCharacteristic().value,
+        ];
     }
 }
