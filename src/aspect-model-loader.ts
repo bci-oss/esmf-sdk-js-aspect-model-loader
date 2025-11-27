@@ -27,9 +27,6 @@ type InstantiatorResult = {
 };
 
 export class AspectModelLoader extends BaseModelLoader {
-    constructor() {
-        super();
-    }
     /**
      * Load and instantiate an Aspect Model based on an RDF/Turtle. Related imports are not resolved.
      *
