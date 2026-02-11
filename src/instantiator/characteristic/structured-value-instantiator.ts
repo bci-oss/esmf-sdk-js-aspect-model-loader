@@ -40,7 +40,9 @@ export function structuredValueCharacteristicFactory(initProps: BaseInitProps) {
                     characteristic.elements = rdfModel
                         .resolveBlankNodes(propertyQuad.object.value)
                         .map((elementQuad: Quad) =>
-                            Util.isNamedNode(elementQuad.object) ? createProperty(elementQuad) : elementQuad.object.value
+                            Util.isNamedNode(elementQuad.object)
+                                ? propertyFactory(initProps).createProperty(elementQuad).property
+                                : elementQuad.object.value
                         );
 
                     characteristic.elements.forEach(element => element instanceof DefaultProperty && element.addParent(characteristic));

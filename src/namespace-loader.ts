@@ -22,9 +22,6 @@ import {RdfModel} from './shared/rdf-model';
 import {RdfModelUtil} from './shared/rdf-model-util';
 
 export class NamespaceLoader extends BaseModelLoader {
-    constructor() {
-        super();
-    }
     /**
      * Loads RDF content and returns an Observable that emits a map of namespaces as keys and an array of corresponding NamedElement objects.
      *
