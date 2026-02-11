@@ -21,7 +21,7 @@ import {RdfLoader} from './shared/rdf-loader';
 import {RdfModel} from './shared/rdf-model';
 import {RdfModelUtil} from './shared/rdf-model-util';
 
-type InstantiatorResult = {
+export type InstantiatorResult = {
     aspect: Aspect;
     initProps: BaseInitProps;
 };
@@ -80,15 +80,8 @@ export class AspectModelLoader extends BaseModelLoader {
     }
 }
 
-export function loadAspectModel(model: {filesContent: string[]; aspectModelUrn?: string}) {
+export function loadAspectModel(model: {filesContent: string[]; aspectModelUrn?: string}): Observable<InstantiatorResult> {
     const aspectModelLoader = new AspectModelLoader();
 
-    return aspectModelLoader.load(model.aspectModelUrn || '', ...model.filesContent).pipe(
-        map(({aspect, initProps}) => ({
-            aspect,
-            rdfModel: initProps.rdfModel,
-            store: initProps.rdfModel.store,
-            cachedElements: initProps.cache,
-        }))
-    );
+    return aspectModelLoader.load(model.aspectModelUrn || '', ...model.filesContent);
 }

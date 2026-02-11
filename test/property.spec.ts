@@ -13,13 +13,13 @@
 
 import {
     AspectModelLoader,
-    DefaultAspect,
     DefaultCharacteristic,
     DefaultEntity,
     DefaultEnumeration,
     DefaultProperty,
     DefaultTrait,
     Enumeration,
+    InstantiatorResult,
     Property,
 } from '../src';
 import {
@@ -30,28 +30,29 @@ import {
 import {Subscription} from 'rxjs';
 import {property} from './models/property';
 import DoneCallback = jest.DoneCallback;
-import {destroyRdfModel} from '../src/shared/rdf-model';
 
 describe('Property tests', (): void => {
     let loader: AspectModelLoader;
-    let aspect: DefaultAspect;
+    let result: InstantiatorResult;
     let subscription: Subscription;
 
     describe('Basic property tests', (): void => {
         beforeAll((done: DoneCallback): void => {
             loader = new AspectModelLoader();
-            subscription = loader.loadSelfContainedModel(property).subscribe((_aspect: DefaultAspect): void => {
-                aspect = _aspect;
-                done();
-            });
+            subscription = loader
+                .load('urn:samm:org.eclipse.esmf.test:1.0.0#AspectDefault', property)
+                .subscribe((_result: InstantiatorResult): void => {
+                    result = _result;
+                    done();
+                });
         });
 
         it('should have marked as none collection aspect', (): void => {
-            expect(aspect.isCollectionAspect).toBe(false);
+            expect(result.aspect.isCollectionAspect).toBe(false);
         });
 
         test('should have overrides applied', (): void => {
-            expect((<DefaultProperty>aspect.properties[0]).isAnonymous()).toBe(true);
+            expect((<DefaultProperty>result.aspect.properties[0]).isAnonymous()).toBe(true);
         });
 
         test('should have an enumeration "EnumerationCharacteristic" with entries', (): void => {
@@ -102,11 +103,11 @@ describe('Property tests', (): void => {
         });
 
         test('should find property optionalProperty by name', (): void => {
-            expect(aspect.getProperty('optionalProperty').name).toBeDefined();
+            expect(result.aspect.getProperty('optionalProperty').name).toBeDefined();
         });
 
         test('should not find property prodAndStepIdent by name', (): void => {
-            expect(aspect.getProperty('prodAndStepIdent')).toBe(undefined);
+            expect(result.aspect.getProperty('prodAndStepIdent')).toBe(undefined);
         });
 
         test('should find not optional property by name', (): void => {
@@ -118,11 +119,11 @@ describe('Property tests', (): void => {
         });
 
         test('should have a name', (): void => {
-            expect(aspect.properties[0].name).toBeDefined();
+            expect(result.aspect.properties[0].name).toBeDefined();
         });
 
         test('should have 2 constraints defined', (): void => {
-            expect((aspect.properties[0].characteristic as DefaultTrait).constraints).toHaveLength(2);
+            expect((result.aspect.properties[0].characteristic as DefaultTrait).constraints).toHaveLength(2);
         });
 
         test('should get the preferredName', (): void => {
@@ -146,7 +147,7 @@ describe('Property tests', (): void => {
         });
 
         test('should check for optional properties', (): void => {
-            expect((aspect.properties[0] as Property).optional).toBeTruthy();
+            expect((result.aspect.properties[0] as Property).optional).toBeTruthy();
         });
 
         test('should check for not optional properties', (): void => {
@@ -166,7 +167,6 @@ describe('Property tests', (): void => {
         });
 
         afterAll((): void => {
-            destroyRdfModel();
             subscription?.unsubscribe();
         });
     });
@@ -175,30 +175,29 @@ describe('Property tests', (): void => {
         beforeAll((done: DoneCallback): void => {
             loader = new AspectModelLoader();
             subscription = loader
-                .loadSelfContainedModel(movementAspectModelWithCollectionsAndReusedEntity)
-                .subscribe((_aspect: DefaultAspect): void => {
-                    aspect = _aspect;
+                .load('urn:samm:org.eclipse.esmf.test:1.0.0#AspectDefault', movementAspectModelWithCollectionsAndReusedEntity)
+                .subscribe((_result: InstantiatorResult): void => {
+                    result = _result;
                     done();
                 });
         });
 
         it('should have marked as collection aspect', (): void => {
-            expect(aspect.isCollectionAspect).toBe(true);
+            expect(result.aspect.isCollectionAspect).toBe(true);
         });
 
         it('should have one properties items entries', (): void => {
-            const property = aspect.getProperty('items');
+            const property = result.aspect.getProperty('items');
             expect(property.characteristic.dataType?.isComplexType()).toBe(true);
             expect((property.characteristic.dataType as DefaultEntity).name).toBe('Movement');
         });
 
         it('should have one property position', (): void => {
-            const property = aspect.getProperty('items');
+            const property = result.aspect.getProperty('items');
             expect((property.characteristic.dataType as DefaultEntity).getProperty('position')).toBeDefined();
         });
 
         afterAll((): void => {
-            destroyRdfModel();
             subscription?.unsubscribe();
         });
     });
@@ -206,30 +205,32 @@ describe('Property tests', (): void => {
     describe('Operations test', (): void => {
         beforeAll((done: DoneCallback): void => {
             loader = new AspectModelLoader();
-            subscription = loader.loadSelfContainedModel(movementAspectModelWithOperations).subscribe((_aspect: DefaultAspect): void => {
-                aspect = _aspect;
-                done();
-            });
+            subscription = loader
+                .load('urn:samm:org.eclipse.esmf.test:1.0.0#AspectDefault', movementAspectModelWithOperations)
+                .subscribe((_result: InstantiatorResult): void => {
+                    result = _result;
+                    done();
+                });
         });
 
         it('should have one operations defined', (): void => {
-            expect(aspect.operations.length).toEqual(1);
+            expect(result.aspect.operations.length).toEqual(1);
         });
 
         it('should have one operations with an input defined', (): void => {
-            expect(aspect.operations[0].input.length).toEqual(1);
-            expect(aspect.operations[0].input[0].characteristic.dataType?.urn).toEqual('http://www.w3.org/2001/XMLSchema#string');
-            expect(aspect.operations[0].input[0].characteristic.dataType?.getShortType()).toEqual('string');
-            expect(aspect.operations[0].input[0].characteristic.name).toEqual('ToggleValues');
-            expect((aspect.operations[0].input[0].characteristic as DefaultEnumeration).values.map(v => v.value)).toEqual(['on', 'off']);
+            expect(result.aspect.operations[0].input.length).toEqual(1);
+            expect(result.aspect.operations[0].input[0].characteristic.dataType?.urn).toEqual('http://www.w3.org/2001/XMLSchema#string');
+            expect(result.aspect.operations[0].input[0].characteristic.dataType?.getShortType()).toEqual('string');
+            expect(result.aspect.operations[0].input[0].characteristic.name).toEqual('ToggleValues');
+            expect((result.aspect.operations[0].input[0].characteristic as DefaultEnumeration).values.map(v => v.value)).toEqual(['on', 'off']);
         });
 
         it('should have one operations with a output defined', (): void => {
-            expect(aspect.operations[0].output).toBeDefined();
-            expect(aspect.operations[0].output?.characteristic.dataType?.urn).toEqual('http://www.w3.org/2001/XMLSchema#string');
-            expect(aspect.operations[0].output?.characteristic.dataType?.getShortType()).toEqual('string');
-            expect(aspect.operations[0].output?.characteristic.name).toEqual('ToggleState');
-            expect((aspect.operations[0].output?.characteristic as DefaultEnumeration).values.map(v => v.value)).toEqual([
+            expect(result.aspect.operations[0].output).toBeDefined();
+            expect(result.aspect.operations[0].output?.characteristic.dataType?.urn).toEqual('http://www.w3.org/2001/XMLSchema#string');
+            expect(result.aspect.operations[0].output?.characteristic.dataType?.getShortType()).toEqual('string');
+            expect(result.aspect.operations[0].output?.characteristic.name).toEqual('ToggleState');
+            expect((result.aspect.operations[0].output?.characteristic as DefaultEnumeration).values.map(v => v.value)).toEqual([
                 'ok',
                 'denied',
                 'unknown',
@@ -237,7 +238,6 @@ describe('Property tests', (): void => {
         });
 
         afterAll((): void => {
-            destroyRdfModel();
             subscription?.unsubscribe();
         });
     });
